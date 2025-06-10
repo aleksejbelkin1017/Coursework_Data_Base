@@ -87,7 +87,7 @@ def save_company_to_db(company_data, user, password):
     try:
         # Подключаемся к базе данных
         conn = psycopg2.connect(
-            dbname="employers_vacations_database",
+            dbname="employers_vacancies_database",
             user=user,
             password=password,
             host="localhost"
@@ -128,4 +128,88 @@ def save_company_to_db(company_data, user, password):
         return True
     except Exception as e:
         print(f"Ошибка при сохранении данных: {e}")
+        return False
+
+
+def save_vacancies_to_db(vacancies_data, user, password):
+    try:
+        # Подключаемся к базе данных
+        conn = psycopg2.connect(
+            dbname="employers_vacancies_database",
+            user=user,
+            password=password,
+            host="localhost"
+        )
+
+        cur = conn.cursor()
+
+        # Проходим по всем вакансиям
+        for vacancy in vacancies_data.get('items', []):
+            # Собираем данные для вставки
+            salary = vacancy.get('salary')
+            data = {
+                'vacancy_id': vacancy.get('id'),
+                'vacancy_name': vacancy.get('name', 'Не указано'),
+                'employer_name': vacancy.get('employer', {}).get('name', 'Не указано'),
+                'employer_id': vacancy.get('employer', {}).get('id', 'Не указано'),
+                'salary_min': salary.get('from', 0) if salary else 0,
+                'salary_max': salary.get('to', 0) if salary else 0,
+                'vacancy_url': vacancy.get('alternate_url', 'Не указано')
+            }
+            # print(f"Сохраняем вакансию: {data}")
+            # Проверяем существование вакансии
+            cur.execute("SELECT vacancy_id FROM vacancies WHERE vacancy_id = %s", (data['vacancy_id'],))
+            existing_vacancy = cur.fetchone()
+
+            if existing_vacancy:
+                # Если вакансия уже есть, обновляем данные
+                cur.execute("""
+                UPDATE vacancies 
+                SET vacancy_name = %s, 
+                    employer_name = %s, 
+                    employer_id = %s, 
+                    salary_min = %s, 
+                    salary_max = %s, 
+                    vacancy_url = %s 
+                WHERE vacancy_id = %s
+                """, (
+                    data['vacancy_name'],
+                    data['employer_name'],
+                    data['employer_id'],
+                    data['salary_min'],
+                    data['salary_max'],
+                    data['vacancy_url'],
+                    data['vacancy_id']
+                ))
+            else:
+                # Если вакансии нет, добавляем новую запись
+                cur.execute("""
+                INSERT INTO vacancies (
+                    vacancy_id, 
+                    vacancy_name, 
+                    employer_name, 
+                    employer_id, 
+                    salary_min, 
+                    salary_max, 
+                    vacancy_url
+                ) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    data['vacancy_id'],
+                    data['vacancy_name'],
+                    data['employer_name'],
+                    data['employer_id'],
+                    data['salary_min'],
+                    data['salary_max'],
+                    data['vacancy_url']
+                ))
+
+        # Применяем изменения
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return True
+    except Exception as e:
+        print(f"Ошибка при сохранении данных для вакансии: {vacancy.get('id', 'Не указано')}, ошибка: {e}")
         return False

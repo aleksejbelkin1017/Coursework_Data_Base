@@ -3,8 +3,8 @@ import time
 import json
 
 
-def get_employers_info(company_id):
-    url = f'https://api.hh.ru/employers/{company_id}'
+def get_employers_info(employer_id):
+    url = f'https://api.hh.ru/employers/{employer_id}'
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -14,11 +14,27 @@ def get_employers_info(company_id):
         return None
 
 
-# # Пример использования
-# id_company = [3007832, 6780, 5179427, 10832855, 1684993, 5179890, 4295296, 1840251, 10684958, 4138182, 67611]
+def get_vacancies_info(employer_id, page=0):
+    url = f'https://api.hh.ru/vacancies?employer_id={employer_id}&page={page}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        try:
+            return response.json()
+        except ValueError:
+            print("Ошибка обработки JSON")
+            return None
+    else:
+        print(f"Ошибка при получении данных: {response.status_code}")
+        return None
+
+
+# Пример использования
+# id_company = 10832855 #[3007832, 6780, 5179427, 10832855, 1684993, 5179890, 4295296, 1840251, 10684958, 4138182, 67611]
 # count_id_com = 0
 # for id_com in id_company:
-#     company_data = get_employers_info(id_com)
+# company_data = get_vacancies_info(id_company)
+# print(json.dumps(company_data, ensure_ascii=False, indent=4))
 #     if company_data:
 #         print(json.dumps(company_data, ensure_ascii=False, indent=4))
 #         count_id_com += 1
