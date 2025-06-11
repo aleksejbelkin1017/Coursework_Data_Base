@@ -1,16 +1,31 @@
 import psycopg2
+from typing import Dict, Any, List, Optional
 
 
-def create_database_if_not_exists(db_name, user, password, host='127.0.0.1', port='5432'):
+def create_database_if_not_exists(db_name: str, user: str, password: str,
+                                  host: str = '127.0.0.1', port: str = '5432') -> None:
     """
-    Функция для создания базы данных в случае её отсутствия
-    :param db_name: имя создаваемой базы данных
-    :param user: имя пользователя базы данных
-    :param password: пароль от базы данных
-    :param host: хост, по умолчанию 127.0.0.1
-    :param port: номер порта, по умолчанию 5432
-    :return: создает базу данных с заданным наименованием либо возвращает сообщение о существовании такой базы данных
+    Функция для создания базы данных в случае её отсутствия.
+
+    Параметры:
+    db_name (str): имя создаваемой базы данных
+    user (str): имя пользователя базы данных
+    password (str): пароль от базы данных
+    host (str, optional): хост, по умолчанию '127.0.0.1'
+    port (str, optional): номер порта, по умолчанию '5432'
+
+    Возвращаемое значение:
+    None
+
+    Побочные эффекты:
+    - Создает базу данных с заданным именем, если она не существует
+    - Выводит сообщение об успешном создании или обновлении
+    - Обрабатывает возможные ошибки подключения и создания
+
+    Поднимает:
+    Exception: при возникновении ошибок подключения или создания базы данных
     """
+    connection = None
     try:
         # Подключение к серверу базы данных
         connection = psycopg2.connect(
@@ -32,25 +47,50 @@ def create_database_if_not_exists(db_name, user, password, host='127.0.0.1', por
         if not exists:
             # Выполнение команды создания базы данных, если она не существует
             cursor.execute(f"CREATE DATABASE {db_name};")
-            #print(f"База данных '{db_name}' успешно создана.")
+            print(f"\nБаза данных '{db_name}' успешно создана.")
         else:
-            print(f"База данных '{db_name}' создана ранее.")
+            print(f"\nБаза данных '{db_name}' обновлена.")
 
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Ошибка при работе с базой данных: {error}")
+        # Добавляем дополнительную информацию об ошибке
+        if 'no password supplied' in str(error):
+            print("Проверьте правильность указания пароля в файле .env")
+        elif 'connection refused' in str(error):
+            print("Проверьте, запущен ли PostgreSQL и корректность хоста/порта")
+        elif 'permission denied' in str(error):
+            print("У пользователя нет прав на создание базы данных")
+
     finally:
         # Закрытие соединения
         if connection:
-            cursor.close()
-            connection.close()
-            # print("Соединение с PostgreSQL закрыто.")
-
-# Использование функции
-# create_database_if_not_exists('company_vacations_database', 'postgres', '29051989')
+            try:
+                cursor.close()
+                connection.close()
+            except Exception as e:
+                print(f"Ошибка при закрытии соединения: {e}")
 
 
 # Функция для создания таблицы с проверкой
-def create_table_if_not_exists(dbname, user, password, host, table_name, columns_sql):
+def create_table_if_not_exists(dbname: str, user: str, password: str,
+                               host: str, table_name: str, columns_sql: str) -> None:
+    """
+        Создает таблицу в базе данных, если она еще не существует.
+
+        Параметры:
+        dbname (str): название базы данных
+        user (str): имя пользователя для подключения
+        password (str): пароль пользователя
+        host (str): хост базы данных
+        table_name (str): название создаваемой таблицы
+        columns_sql (str): SQL-описание столбцов таблицы
+
+        Возвращаемое значение:
+        None
+
+        Поднимает:
+        Exception: при ошибке подключения или создания таблицы
+    """
     try:
         # Подключаемся к базе данных
         connection = psycopg2.connect(
@@ -83,7 +123,21 @@ def create_table_if_not_exists(dbname, user, password, host, table_name, columns
             connection.close()
 
 
-def save_company_to_db(company_data, user, password):
+def save_company_to_db(company_data: Dict[str, Any], user: str, password: str) -> bool:
+    """
+    Сохраняет данные компании в базу данных.
+
+    Параметры:
+    company_data (Dict[str, Any]): словарь с данными компании
+    user (str): имя пользователя для подключения
+    password (str): пароль пользователя
+
+    Возвращаемое значение:
+    bool: True - если данные успешно сохранены, False - при ошибке
+
+    Поднимает:
+    Exception: при ошибке подключения или сохранения данных
+    """
     try:
         # Подключаемся к базе данных
         conn = psycopg2.connect(
@@ -131,7 +185,21 @@ def save_company_to_db(company_data, user, password):
         return False
 
 
-def save_vacancies_to_db(vacancies_data, user, password):
+def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: str) -> bool:
+    """
+    Сохраняет данные вакансий в базу данных.
+
+    Параметры:
+    vacancies_data (Dict[str, Any]): словарь с данными вакансий
+    user (str): имя пользователя для подключения
+    password (str): пароль пользователя
+
+    Возвращаемое значение:
+    bool: True - если данные успешно сохранены, False - при ошибке
+
+    Поднимает:
+    Exception: при ошибке подключения или сохранения данных
+    """
     try:
         # Подключаемся к базе данных
         conn = psycopg2.connect(
@@ -154,7 +222,8 @@ def save_vacancies_to_db(vacancies_data, user, password):
                 'employer_id': vacancy.get('employer', {}).get('id', 'Не указано'),
                 'salary_min': salary.get('from', 0) if salary else 0,
                 'salary_max': salary.get('to', 0) if salary else 0,
-                'vacancy_url': vacancy.get('alternate_url', 'Не указано')
+                'vacancy_url': vacancy.get('alternate_url', 'Не указано'),
+                'requirement_vacancy': vacancy.get('snippet', {}).get('requirement', 'Не указано')
             }
             # print(f"Сохраняем вакансию: {data}")
             # Проверяем существование вакансии
@@ -170,7 +239,8 @@ def save_vacancies_to_db(vacancies_data, user, password):
                     employer_id = %s, 
                     salary_min = %s, 
                     salary_max = %s, 
-                    vacancy_url = %s 
+                    vacancy_url = %s,
+                    requirement_vacancy = %s 
                 WHERE vacancy_id = %s
                 """, (
                     data['vacancy_name'],
@@ -179,6 +249,7 @@ def save_vacancies_to_db(vacancies_data, user, password):
                     data['salary_min'],
                     data['salary_max'],
                     data['vacancy_url'],
+                    data['requirement_vacancy'],
                     data['vacancy_id']
                 ))
             else:
@@ -191,9 +262,10 @@ def save_vacancies_to_db(vacancies_data, user, password):
                     employer_id, 
                     salary_min, 
                     salary_max, 
-                    vacancy_url
+                    vacancy_url,
+                    requirement_vacancy
                 ) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     data['vacancy_id'],
                     data['vacancy_name'],
@@ -201,7 +273,8 @@ def save_vacancies_to_db(vacancies_data, user, password):
                     data['employer_id'],
                     data['salary_min'],
                     data['salary_max'],
-                    data['vacancy_url']
+                    data['vacancy_url'],
+                    data['requirement_vacancy']
                 ))
 
         # Применяем изменения

@@ -1,9 +1,21 @@
 import requests
 import time
-import json
+from typing import List, Dict, Optional, Any
 
 
-def get_employers_info(employer_id):
+def get_employers_info(employer_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Получает информацию о работодателе по его ID.
+
+    Параметры:
+    employer_id (int): ID работодателя
+
+    Возвращаемое значение:
+    Dict[str, Any]: словарь с информацией о работодателе или None при ошибке
+
+    Поднимает:
+    requests.RequestException: при ошибке запроса
+    """
     url = f'https://api.hh.ru/employers/{employer_id}'
     response = requests.get(url)
 
@@ -14,7 +26,21 @@ def get_employers_info(employer_id):
         return None
 
 
-def get_vacancies_info(employer_id, page=0):
+def get_vacancies_info(employer_id: int, page: int = 0) -> Optional[Dict[str, Any]]:
+    """
+    Получает информацию о вакансиях работодателя.
+
+    Параметры:
+    employer_id (int): ID работодателя
+    page (int): номер страницы с вакансиями (по умолчанию 0)
+
+    Возвращаемое значение:
+    Dict[str, Any]: словарь с информацией о вакансиях или None при ошибке
+
+    Поднимает:
+    requests.RequestException: при ошибке запроса
+    ValueError: при ошибке парсинга JSON
+    """
     url = f'https://api.hh.ru/vacancies?employer_id={employer_id}&page={page}'
     response = requests.get(url)
 
@@ -29,21 +55,19 @@ def get_vacancies_info(employer_id, page=0):
         return None
 
 
-# Пример использования
-# id_company = 10832855 #[3007832, 6780, 5179427, 10832855, 1684993, 5179890, 4295296, 1840251, 10684958, 4138182, 67611]
-# count_id_com = 0
-# for id_com in id_company:
-# company_data = get_vacancies_info(id_company)
-# print(json.dumps(company_data, ensure_ascii=False, indent=4))
-#     if company_data:
-#         print(json.dumps(company_data, ensure_ascii=False, indent=4))
-#         count_id_com += 1
-#
-# print(count_id_com)
+def get_employer_vacancies(employer_id: int) -> List[Dict[str, Any]]:
+    """
+    Получает все вакансии работодателя со всех страниц.
 
+    Параметры:
+    employer_id (int): ID работодателя
 
+    Возвращаемое значение:
+    List[Dict[str, Any]]: список словарей с информацией о вакансиях
 
-def get_employer_vacancies(employer_id):
+    Поднимает:
+    requests.RequestException: при ошибке запроса
+    """
     all_vacancies = []
     page = 0
 
@@ -67,20 +91,3 @@ def get_employer_vacancies(employer_id):
         time.sleep(0.5)
 
     return all_vacancies
-
-
-# # Используем найденный ID работодателя
-# vacancies = get_employer_vacancies(67611)
-# count_vac = 0
-#
-# # Выводим информацию о вакансиях
-# for vacancy in vacancies:
-#     print(f"ID вакансии: {vacancy['id']}")
-#     print(f"Название: {vacancy['name']}")
-#     print(f"Зарплата: {vacancy.get('salary', 'Не указана')}")
-#     print(f"Город: {vacancy['area']['name']}")
-#     print(f"Ссылка: {vacancy['alternate_url']}")
-#     print('-' * 50)
-#     count_vac += 1
-#
-# print(count_vac)
