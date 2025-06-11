@@ -2,7 +2,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
-from src.db_setup import create_database_if_not_exists, create_table_if_not_exists, save_company_to_db, save_vacancies_to_db
+from src.db_setup import (create_database_if_not_exists, create_table_if_not_exists,
+                          save_company_to_db, save_vacancies_to_db)
 from src.api_hh import get_employers_info, get_vacancies_info
 from src.db_manager import DBManager
 
@@ -57,7 +58,7 @@ def user_interaction():
         columns_sql='vacancy_id VARCHAR(100) PRIMARY KEY, '
                     'vacancy_name VARCHAR(255), '
                     'employer_name VARCHAR(100) NOT NULL, '
-                    'employer_id VARCHAR(25) REFERENCES employers(employer_id), '  
+                    'employer_id VARCHAR(25) REFERENCES employers(employer_id), '
                     'salary_min INTEGER, '
                     'salary_max INTEGER, '
                     'vacancy_url VARCHAR(255), '
@@ -83,7 +84,7 @@ def user_interaction():
 
     while True:
 
-        db = DBManager(DB_NAME,DB_USER,DB_PASS)
+        db = DBManager(DB_NAME, DB_USER, DB_PASS)
 
         question_about_vacancies = ('\nВыберете информацию для ознакомления:\n\n'
                                     '"1" - список всех компаний и количество вакансий у каждой компании;\n'
@@ -111,8 +112,8 @@ def user_interaction():
 
             while True:
                 print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                          '\n"1" - Да;'
-                          '\n"2" - Нет.\n')
+                      '\n"1" - Да;'
+                      '\n"2" - Нет.\n')
                 user_answer_about_next_work = input('\nВы ввели: ')
                 if user_answer_about_next_work == "2":
                     print("-" * 40)

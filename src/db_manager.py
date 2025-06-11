@@ -126,15 +126,15 @@ class DBManager:
         """
         try:
             query = """
-            SELECT 
+            SELECT
             employers.employer_name,
             vacancies.vacancy_name,
             vacancies.salary_min,
             vacancies.salary_max,
             vacancies.vacancy_url
-            FROM 
+            FROM
             vacancies
-            JOIN 
+            JOIN
             employers ON vacancies.employer_id = employers.employer_id;
             """
 
@@ -180,7 +180,7 @@ class DBManager:
 
             # Формируем SQL-запрос
             query = """
-            SELECT 
+            SELECT
                 AVG(salary_min) as avg_min,
                 AVG(salary_max) as avg_max,
                 (AVG(salary_min) + AVG(salary_max)) / 2 as avg_salary
@@ -227,15 +227,15 @@ class DBManager:
 
             # Формируем SQL-запрос
             query = f"""
-            SELECT 
+            SELECT
                 vacancy_name,
                 requirement_vacancy,
                 salary_min,
                 salary_max,
                 (salary_min + salary_max) / 2 as avg_vacancy_salary
             FROM vacancies
-            WHERE 
-                salary_min IS NOT NULL 
+            WHERE
+                salary_min IS NOT NULL
                 AND salary_max IS NOT NULL
                 AND ((salary_min + salary_max) / 2) > {avg_salary}
             ORDER BY avg_vacancy_salary DESC;
@@ -282,7 +282,7 @@ class DBManager:
         try:
             # Формируем SQL-запрос с параметризованным значением
             query = """
-            SELECT 
+            SELECT
                 vacancy_id,
                 vacancy_name,
                 requirement_vacancy,

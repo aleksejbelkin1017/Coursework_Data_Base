@@ -1,5 +1,5 @@
 import psycopg2
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 
 
 def create_database_if_not_exists(db_name: str, user: str, password: str,
@@ -157,20 +157,26 @@ def save_company_to_db(company_data: Dict[str, Any], user: str, password: str) -
         if existing_company:
             # Если компания уже есть, обновляем данные
             cur.execute("""
-                UPDATE employers 
-                SET employer_name = %s, 
-                    employer_url = %s, 
-                    employer_open_vacancy = %s 
+                UPDATE employers
+                SET employer_name = %s,
+                    employer_url = %s,
+                    employer_open_vacancy = %s
                 WHERE employer_id = %s
             """, (
-            company_data['name'], company_data['alternate_url'], company_data['open_vacancies'], company_data['id']))
+                company_data['name'],
+                company_data['alternate_url'],
+                company_data['open_vacancies'],
+                company_data['id']))
         else:
             # Если компании нет, добавляем новую запись
             cur.execute("""
-                INSERT INTO employers (employer_id, employer_name, employer_url, employer_open_vacancy) 
+                INSERT INTO employers (employer_id, employer_name, employer_url, employer_open_vacancy)
                 VALUES (%s, %s, %s, %s)
             """, (
-            company_data['id'], company_data['name'], company_data['alternate_url'], company_data['open_vacancies']))
+                company_data['id'],
+                company_data['name'],
+                company_data['alternate_url'],
+                company_data['open_vacancies']))
 
         # Применяем изменения
         conn.commit()
@@ -233,14 +239,14 @@ def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: st
             if existing_vacancy:
                 # Если вакансия уже есть, обновляем данные
                 cur.execute("""
-                UPDATE vacancies 
-                SET vacancy_name = %s, 
-                    employer_name = %s, 
-                    employer_id = %s, 
-                    salary_min = %s, 
-                    salary_max = %s, 
+                UPDATE vacancies
+                SET vacancy_name = %s,
+                    employer_name = %s,
+                    employer_id = %s,
+                    salary_min = %s,
+                    salary_max = %s,
                     vacancy_url = %s,
-                    requirement_vacancy = %s 
+                    requirement_vacancy = %s
                 WHERE vacancy_id = %s
                 """, (
                     data['vacancy_name'],
@@ -256,15 +262,15 @@ def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: st
                 # Если вакансии нет, добавляем новую запись
                 cur.execute("""
                 INSERT INTO vacancies (
-                    vacancy_id, 
-                    vacancy_name, 
-                    employer_name, 
-                    employer_id, 
-                    salary_min, 
-                    salary_max, 
+                    vacancy_id,
+                    vacancy_name,
+                    employer_name,
+                    employer_id,
+                    salary_min,
+                    salary_max,
                     vacancy_url,
                     requirement_vacancy
-                ) 
+                )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     data['vacancy_id'],
