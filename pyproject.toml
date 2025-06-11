@@ -1,0 +1,43 @@
+[project]
+name = "coursework-data-base"
+version = "0.1.0"
+description = "Creating a program for user interaction with a database of vacancies from the HH website."
+authors = [
+    {name = "aleksejbelkin1017@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "psycopg2 (>=2.9.10,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.lint.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.2.0"
+mypy = "^1.16.0"
+
+[tool.mypy]
+suppress_error_codes = ["attr-defined"]
+check_untyped_defs = true
+strict_optional = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_return_any = true
+exclude = 'venv|.*/conftest.py'
+
+[tool.isort]
+line_length = 119
+
+[tool.black]
+line-length = 119
+exclude = '''
+(\.git)
+'''
