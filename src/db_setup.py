@@ -2,8 +2,9 @@ import psycopg2
 from typing import Dict, Any
 
 
-def create_database_if_not_exists(db_name: str, user: str, password: str,
-                                  host: str = '127.0.0.1', port: str = '5432') -> None:
+def create_database_if_not_exists(
+    db_name: str, user: str, password: str, host: str = "127.0.0.1", port: str = "5432"
+) -> None:
     """
     Функция для создания базы данных в случае её отсутствия.
 
@@ -28,13 +29,7 @@ def create_database_if_not_exists(db_name: str, user: str, password: str,
     connection = None
     try:
         # Подключение к серверу базы данных
-        connection = psycopg2.connect(
-            user=user,
-            password=password,
-            host=host,
-            port=port,
-            database="postgres"
-        )
+        connection = psycopg2.connect(user=user, password=password, host=host, port=port, database="postgres")
         connection.autocommit = True
 
         # Создание курсора
@@ -54,11 +49,11 @@ def create_database_if_not_exists(db_name: str, user: str, password: str,
     except (Exception, psycopg2.DatabaseError) as error:
         print(f"Ошибка при работе с базой данных: {error}")
         # Добавляем дополнительную информацию об ошибке
-        if 'no password supplied' in str(error):
+        if "no password supplied" in str(error):
             print("Проверьте правильность указания пароля в файле .env")
-        elif 'connection refused' in str(error):
+        elif "connection refused" in str(error):
             print("Проверьте, запущен ли PostgreSQL и корректность хоста/порта")
-        elif 'permission denied' in str(error):
+        elif "permission denied" in str(error):
             print("У пользователя нет прав на создание базы данных")
 
     finally:
@@ -72,39 +67,35 @@ def create_database_if_not_exists(db_name: str, user: str, password: str,
 
 
 # Функция для создания таблицы с проверкой
-def create_table_if_not_exists(dbname: str, user: str, password: str,
-                               host: str, table_name: str, columns_sql: str) -> None:
+def create_table_if_not_exists(
+    dbname: str, user: str, password: str, host: str, table_name: str, columns_sql: str
+) -> None:
     """
-        Создает таблицу в базе данных, если она еще не существует.
+    Создает таблицу в базе данных, если она еще не существует.
 
-        Параметры:
-        dbname (str): название базы данных
-        user (str): имя пользователя для подключения
-        password (str): пароль пользователя
-        host (str): хост базы данных
-        table_name (str): название создаваемой таблицы
-        columns_sql (str): SQL-описание столбцов таблицы
+    Параметры:
+    dbname (str): название базы данных
+    user (str): имя пользователя для подключения
+    password (str): пароль пользователя
+    host (str): хост базы данных
+    table_name (str): название создаваемой таблицы
+    columns_sql (str): SQL-описание столбцов таблицы
 
-        Возвращаемое значение:
-        None
+    Возвращаемое значение:
+    None
 
-        Поднимает:
-        Exception: при ошибке подключения или создания таблицы
+    Поднимает:
+    Exception: при ошибке подключения или создания таблицы
     """
     try:
         # Подключаемся к базе данных
-        connection = psycopg2.connect(
-            dbname=dbname,
-            user=user,
-            password=password,
-            host=host
-        )
+        connection = psycopg2.connect(dbname=dbname, user=user, password=password, host=host)
 
         # Создаем курсор для выполнения SQL-запросов
         cursor = connection.cursor()
 
         # Формируем SQL-запрос для создания таблицы, если она не существует
-        create_table_query = f'CREATE TABLE IF NOT EXISTS {table_name} ({columns_sql});'
+        create_table_query = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns_sql});"
 
         # Выполняем запрос
         cursor.execute(create_table_query)
@@ -140,43 +131,46 @@ def save_company_to_db(company_data: Dict[str, Any], user: str, password: str) -
     """
     try:
         # Подключаемся к базе данных
-        conn = psycopg2.connect(
-            dbname="employers_vacancies_database",
-            user=user,
-            password=password,
-            host="localhost"
-        )
+        conn = psycopg2.connect(dbname="employers_vacancies_database", user=user, password=password, host="localhost")
 
         # Создаем курсор
         cur = conn.cursor()
 
         # Проверяем, существует ли уже компания в базе
-        cur.execute("SELECT employer_id FROM employers WHERE employer_id = %s", (company_data['id'],))
+        cur.execute("SELECT employer_id FROM employers WHERE employer_id = %s", (company_data["id"],))
         existing_company = cur.fetchone()
 
         if existing_company:
             # Если компания уже есть, обновляем данные
-            cur.execute("""
+            cur.execute(
+                """
                 UPDATE employers
                 SET employer_name = %s,
                     employer_url = %s,
                     employer_open_vacancy = %s
                 WHERE employer_id = %s
-            """, (
-                company_data['name'],
-                company_data['alternate_url'],
-                company_data['open_vacancies'],
-                company_data['id']))
+            """,
+                (
+                    company_data["name"],
+                    company_data["alternate_url"],
+                    company_data["open_vacancies"],
+                    company_data["id"],
+                ),
+            )
         else:
             # Если компании нет, добавляем новую запись
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO employers (employer_id, employer_name, employer_url, employer_open_vacancy)
                 VALUES (%s, %s, %s, %s)
-            """, (
-                company_data['id'],
-                company_data['name'],
-                company_data['alternate_url'],
-                company_data['open_vacancies']))
+            """,
+                (
+                    company_data["id"],
+                    company_data["name"],
+                    company_data["alternate_url"],
+                    company_data["open_vacancies"],
+                ),
+            )
 
         # Применяем изменения
         conn.commit()
@@ -208,37 +202,33 @@ def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: st
     """
     try:
         # Подключаемся к базе данных
-        conn = psycopg2.connect(
-            dbname="employers_vacancies_database",
-            user=user,
-            password=password,
-            host="localhost"
-        )
+        conn = psycopg2.connect(dbname="employers_vacancies_database", user=user, password=password, host="localhost")
 
         cur = conn.cursor()
 
         # Проходим по всем вакансиям
-        for vacancy in vacancies_data.get('items', []):
+        for vacancy in vacancies_data.get("items", []):
             # Собираем данные для вставки
-            salary = vacancy.get('salary')
+            salary = vacancy.get("salary")
             data = {
-                'vacancy_id': vacancy.get('id'),
-                'vacancy_name': vacancy.get('name', 'Не указано'),
-                'employer_name': vacancy.get('employer', {}).get('name', 'Не указано'),
-                'employer_id': vacancy.get('employer', {}).get('id', 'Не указано'),
-                'salary_min': salary.get('from', 0) if salary else 0,
-                'salary_max': salary.get('to', 0) if salary else 0,
-                'vacancy_url': vacancy.get('alternate_url', 'Не указано'),
-                'requirement_vacancy': vacancy.get('snippet', {}).get('requirement', 'Не указано')
+                "vacancy_id": vacancy.get("id"),
+                "vacancy_name": vacancy.get("name", "Не указано"),
+                "employer_name": vacancy.get("employer", {}).get("name", "Не указано"),
+                "employer_id": vacancy.get("employer", {}).get("id", "Не указано"),
+                "salary_min": salary.get("from", 0) if salary else 0,
+                "salary_max": salary.get("to", 0) if salary else 0,
+                "vacancy_url": vacancy.get("alternate_url", "Не указано"),
+                "requirement_vacancy": vacancy.get("snippet", {}).get("requirement", "Не указано"),
             }
             # print(f"Сохраняем вакансию: {data}")
             # Проверяем существование вакансии
-            cur.execute("SELECT vacancy_id FROM vacancies WHERE vacancy_id = %s", (data['vacancy_id'],))
+            cur.execute("SELECT vacancy_id FROM vacancies WHERE vacancy_id = %s", (data["vacancy_id"],))
             existing_vacancy = cur.fetchone()
 
             if existing_vacancy:
                 # Если вакансия уже есть, обновляем данные
-                cur.execute("""
+                cur.execute(
+                    """
                 UPDATE vacancies
                 SET vacancy_name = %s,
                     employer_name = %s,
@@ -248,19 +238,22 @@ def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: st
                     vacancy_url = %s,
                     requirement_vacancy = %s
                 WHERE vacancy_id = %s
-                """, (
-                    data['vacancy_name'],
-                    data['employer_name'],
-                    data['employer_id'],
-                    data['salary_min'],
-                    data['salary_max'],
-                    data['vacancy_url'],
-                    data['requirement_vacancy'],
-                    data['vacancy_id']
-                ))
+                """,
+                    (
+                        data["vacancy_name"],
+                        data["employer_name"],
+                        data["employer_id"],
+                        data["salary_min"],
+                        data["salary_max"],
+                        data["vacancy_url"],
+                        data["requirement_vacancy"],
+                        data["vacancy_id"],
+                    ),
+                )
             else:
                 # Если вакансии нет, добавляем новую запись
-                cur.execute("""
+                cur.execute(
+                    """
                 INSERT INTO vacancies (
                     vacancy_id,
                     vacancy_name,
@@ -272,16 +265,18 @@ def save_vacancies_to_db(vacancies_data: Dict[str, Any], user: str, password: st
                     requirement_vacancy
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    data['vacancy_id'],
-                    data['vacancy_name'],
-                    data['employer_name'],
-                    data['employer_id'],
-                    data['salary_min'],
-                    data['salary_max'],
-                    data['vacancy_url'],
-                    data['requirement_vacancy']
-                ))
+                """,
+                    (
+                        data["vacancy_id"],
+                        data["vacancy_name"],
+                        data["employer_name"],
+                        data["employer_id"],
+                        data["salary_min"],
+                        data["salary_max"],
+                        data["vacancy_url"],
+                        data["requirement_vacancy"],
+                    ),
+                )
 
         # Применяем изменения
         conn.commit()

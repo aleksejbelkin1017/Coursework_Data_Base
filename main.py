@@ -1,34 +1,40 @@
+# mypy: ignore-errors
 import os
 import sys
 from dotenv import load_dotenv
 
-from src.db_setup import (create_database_if_not_exists, create_table_if_not_exists,
-                          save_company_to_db, save_vacancies_to_db)
+from src.db_setup import (
+    create_database_if_not_exists,
+    create_table_if_not_exists,
+    save_company_to_db,
+    save_vacancies_to_db,
+)
 from src.api_hh import get_employers_info, get_vacancies_info
 from src.db_manager import DBManager
 
 
-def user_interaction():
+def user_interaction() -> None:
     """
     Функция для взаимодействия с пользователем.
     """
     load_dotenv()
 
-    DB_NAME = os.getenv('DATABASE_NAME')
-    DB_USER = os.getenv('DATABASE_USER')
-    DB_PASS = os.getenv('DATABASE_PASSWORD')
+    DB_NAME = os.getenv("DATABASE_NAME")
+    DB_USER = os.getenv("DATABASE_USER")
+    DB_PASS = os.getenv("DATABASE_PASSWORD")
 
-    user_greeting = '\nДобро пожаловать в программу ознакомления с работодателями и их вакансиями!\n'
+    user_greeting = "\nДобро пожаловать в программу ознакомления с работодателями и их вакансиями!\n"
     print(user_greeting)
 
     while True:
         question_about_using = input(
-            'Хотите ознакомиться с предложениями?\n\nВведите:'
+            "Хотите ознакомиться с предложениями?\n\nВведите:"
             '\n"1" - для продолжения;'
             '\n"2" - для выхода.\n'
-            '\nВы ввели: ')
+            "\nВы ввели: "
+        )
         if question_about_using == "2":
-            print('\nПрограмма завершена!')
+            print("\nПрограмма завершена!")
             sys.exit()
         elif question_about_using != "1":
             print(f'\nВведено недопустимое значение: "{question_about_using}".\nПопробуйте ещё раз!\n')
@@ -42,42 +48,44 @@ def user_interaction():
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASS,
-        host='localhost',
-        table_name='employers',
-        columns_sql='employer_id VARCHAR(25) PRIMARY KEY, '
-                    'employer_name VARCHAR(100) NOT NULL, '
-                    'employer_url VARCHAR(255), '
-                    'employer_open_vacancy INTEGER')
+        host="localhost",
+        table_name="employers",
+        columns_sql="employer_id VARCHAR(25) PRIMARY KEY, "
+        "employer_name VARCHAR(100) NOT NULL, "
+        "employer_url VARCHAR(255), "
+        "employer_open_vacancy INTEGER",
+    )
     # Создаём таблицу вакансий
     create_table_if_not_exists(
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASS,
-        host='localhost',
-        table_name='vacancies',
-        columns_sql='vacancy_id VARCHAR(100) PRIMARY KEY, '
-                    'vacancy_name VARCHAR(255), '
-                    'employer_name VARCHAR(100) NOT NULL, '
-                    'employer_id VARCHAR(25) REFERENCES employers(employer_id), '
-                    'salary_min INTEGER, '
-                    'salary_max INTEGER, '
-                    'vacancy_url VARCHAR(255), '
-                    'requirement_vacancy TEXT')
+        host="localhost",
+        table_name="vacancies",
+        columns_sql="vacancy_id VARCHAR(100) PRIMARY KEY, "
+        "vacancy_name VARCHAR(255), "
+        "employer_name VARCHAR(100) NOT NULL, "
+        "employer_id VARCHAR(25) REFERENCES employers(employer_id), "
+        "salary_min INTEGER, "
+        "salary_max INTEGER, "
+        "vacancy_url VARCHAR(255), "
+        "requirement_vacancy TEXT",
+    )
     # Выгружаем данные по API с HH на основании id компаний и заполняем базу данных
     id_company = [3007832, 6780, 5179427, 10832855, 1684993, 5179890, 4295296, 1840251, 10684958, 4138182, 67611]
     for id_com in id_company:
         # Получаем данные о компаниях
         company_data = get_employers_info(id_com)
         # Наполняем таблицу employers
-        save_company_to_db(company_data, 'postgres', '29051989')
+        save_company_to_db(company_data, "postgres", "29051989")
         # Получаем данные о вакансиях
         page = 0
         while True:
             vacancies_data = get_vacancies_info(id_com, page)
-            if not vacancies_data or 'items' not in vacancies_data or not vacancies_data['items']:
+            if not vacancies_data or "items" not in vacancies_data or not vacancies_data["items"]:
                 break
-        # Наполняем таблицу vacancies
-            save_vacancies_to_db(vacancies_data, 'postgres', '29051989')
+            # Наполняем таблицу vacancies
+            save_vacancies_to_db(vacancies_data, "postgres", "29051989")
             page += 1
 
     print(f"База данных '{DB_NAME}' готова к использованию!")
@@ -86,16 +94,18 @@ def user_interaction():
 
         db = DBManager(DB_NAME, DB_USER, DB_PASS)
 
-        question_about_vacancies = ('\nВыберете информацию для ознакомления:\n\n'
-                                    '"1" - список всех компаний и количество вакансий у каждой компании;\n'
-                                    '"2" - список всех вакансий с указанием названия компании, '
-                                    'названия вакансии, зарплаты и ссылки на вакансию;\n'
-                                    '"3" - средняя зарплата по всем вакансиям в базе данных;\n'
-                                    '"4" - список вакансий, зарплата по которым выше средней '
-                                    'зарплаты по всем вакансиям;\n'
-                                    '"5" - список всех вакансий, в названии которых есть запрашиваемое Вами слово.\n')
+        question_about_vacancies = (
+            "\nВыберете информацию для ознакомления:\n\n"
+            '"1" - список всех компаний и количество вакансий у каждой компании;\n'
+            '"2" - список всех вакансий с указанием названия компании, '
+            "названия вакансии, зарплаты и ссылки на вакансию;\n"
+            '"3" - средняя зарплата по всем вакансиям в базе данных;\n'
+            '"4" - список вакансий, зарплата по которым выше средней '
+            "зарплаты по всем вакансиям;\n"
+            '"5" - список всех вакансий, в названии которых есть запрашиваемое Вами слово.\n'
+        )
         print(question_about_vacancies)
-        user_answer_about_vacancies = input('\nВы ввели: ')
+        user_answer_about_vacancies = input("\nВы ввели: ")
         print("-" * 40)
 
         if user_answer_about_vacancies == "1":
@@ -111,13 +121,11 @@ def user_interaction():
                 db.close()
 
             while True:
-                print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                      '\n"1" - Да;'
-                      '\n"2" - Нет.\n')
-                user_answer_about_next_work = input('\nВы ввели: ')
+                print("\nЖелаете продолжить работу с базой данных?\n\nВведите:" '\n"1" - Да;' '\n"2" - Нет.\n')
+                user_answer_about_next_work = input("\nВы ввели: ")
                 if user_answer_about_next_work == "2":
                     print("-" * 40)
-                    print('\nПрограмма завершена!')
+                    print("\nПрограмма завершена!")
                     sys.exit()
                 elif user_answer_about_next_work != "1":
                     print("-" * 40)
@@ -142,13 +150,11 @@ def user_interaction():
                 db.close()
 
             while True:
-                print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                      '\n"1" - Да;'
-                      '\n"2" - Нет.\n')
-                user_answer_about_next_work = input('\nВы ввели: ')
+                print("\nЖелаете продолжить работу с базой данных?\n\nВведите:" '\n"1" - Да;' '\n"2" - Нет.\n')
+                user_answer_about_next_work = input("\nВы ввели: ")
                 if user_answer_about_next_work == "2":
                     print("-" * 40)
-                    print('\nПрограмма завершена!')
+                    print("\nПрограмма завершена!")
                     sys.exit()
                 elif user_answer_about_next_work != "1":
                     print("-" * 40)
@@ -170,13 +176,11 @@ def user_interaction():
                 db.close()
 
             while True:
-                print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                      '\n"1" - Да;'
-                      '\n"2" - Нет.\n')
-                user_answer_about_next_work = input('\nВы ввели: ')
+                print("\nЖелаете продолжить работу с базой данных?\n\nВведите:" '\n"1" - Да;' '\n"2" - Нет.\n')
+                user_answer_about_next_work = input("\nВы ввели: ")
                 if user_answer_about_next_work == "2":
                     print("-" * 40)
-                    print('\nПрограмма завершена!')
+                    print("\nПрограмма завершена!")
                     sys.exit()
                 elif user_answer_about_next_work != "1":
                     print("-" * 40)
@@ -201,13 +205,11 @@ def user_interaction():
                 db.close()
 
             while True:
-                print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                      '\n"1" - Да;'
-                      '\n"2" - Нет.\n')
-                user_answer_about_next_work = input('\nВы ввели: ')
+                print("\nЖелаете продолжить работу с базой данных?\n\nВведите:" '\n"1" - Да;' '\n"2" - Нет.\n')
+                user_answer_about_next_work = input("\nВы ввели: ")
                 if user_answer_about_next_work == "2":
                     print("-" * 40)
-                    print('\nПрограмма завершена!')
+                    print("\nПрограмма завершена!")
                     sys.exit()
                 elif user_answer_about_next_work != "1":
                     print("-" * 40)
@@ -218,7 +220,7 @@ def user_interaction():
         elif user_answer_about_vacancies == "5":
             try:
                 db.connect()
-                user_word = input('\nВведите слово для поиска: ')
+                user_word = input("\nВведите слово для поиска: ")
                 # Поиск вакансий по слову 'python'
                 python_vacancies = db.get_vacancies_with_keyword(user_word)
                 # Выводим результаты
@@ -233,13 +235,11 @@ def user_interaction():
                 db.close()
 
             while True:
-                print('\nЖелаете продолжить работу с базой данных?\n\nВведите:'
-                      '\n"1" - Да;'
-                      '\n"2" - Нет.\n')
-                user_answer_about_next_work = input('\nВы ввели: ')
+                print("\nЖелаете продолжить работу с базой данных?\n\nВведите:" '\n"1" - Да;' '\n"2" - Нет.\n')
+                user_answer_about_next_work = input("\nВы ввели: ")
                 if user_answer_about_next_work == "2":
                     print("-" * 40)
-                    print('\nПрограмма завершена!')
+                    print("\nПрограмма завершена!")
                     sys.exit()
                 elif user_answer_about_next_work != "1":
                     print("-" * 40)
@@ -248,5 +248,5 @@ def user_interaction():
                     break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     user_interaction()

@@ -16,8 +16,8 @@ class DBManager:
         connection (Optional[connection]): объект подключения к БД
         cursor (Optional[cursor]): объект курсора
     """
-    def __init__(self, db_name: str, user: str, password: str,
-                 host: str = '127.0.0.1', port: str = '5432'):
+
+    def __init__(self, db_name: str, user: str, password: str, host: str = "127.0.0.1", port: str = "5432"):
         """
         Инициализация объекта DBManager.
 
@@ -48,13 +48,9 @@ class DBManager:
         try:
             # Используем именованные параметры
             self.connection = psycopg2.connect(
-                database=self.db_name,
-                user=self.user,
-                password=self.password,
-                host=self.host,
-                port=self.port
+                database=self.db_name, user=self.user, password=self.password, host=self.host, port=self.port
             )
-            self.cursor = self.connection.cursor()
+            self.cursor = self.connection.cursor()  # type: ignore[attr-defined]
             # print("Подключение установлено успешно")
         except OperationalError as e:
             print(f"Ошибка подключения: {e}")
@@ -95,13 +91,7 @@ class DBManager:
             results = self.cursor.fetchall()
 
             # Форматируем результат
-            companies_data = [
-                {
-                    'employer_name': row[0],
-                    'employer_open_vacancy': row[1]
-                }
-                for row in results
-            ]
+            companies_data = [{"employer_name": row[0], "employer_open_vacancy": row[1]} for row in results]
 
             return companies_data
         except Exception as e:
@@ -138,19 +128,20 @@ class DBManager:
             employers ON vacancies.employer_id = employers.employer_id;
             """
 
-            self.cursor.execute(query)
-            results = self.cursor.fetchall()
+            self.cursor.execute(query)  # type: ignore[attr-defined]
+            results = self.cursor.fetchall()  # type: ignore[attr-defined]
 
-            def format_salary(value):
-                return 'Не указано' if value in (0, None, '') else value
+            def format_salary(value: Optional[int]) -> str:
+                # Явная проверка на None и 0
+                return "Не указано" if value is None or value == 0 else str(value)
 
             vacancies_data = [
                 {
-                    'company_name': row[0],
-                    'vacancy_name': row[1],
-                    'salary_min': format_salary(row[2]),
-                    'salary_max': format_salary(row[3]),
-                    'vacancy_url': row[4]
+                    "company_name": row[0],
+                    "vacancy_name": row[1],
+                    "salary_min": format_salary(row[2]),
+                    "salary_max": format_salary(row[3]),
+                    "vacancy_url": row[4],
                 }
                 for row in results
             ]
@@ -197,11 +188,7 @@ class DBManager:
                 return "Нет данных о зарплатах"
 
             # Возвращаем результат в виде словаря
-            return {
-                'avg_min': round(result[0]),
-                'avg_max': round(result[1]),
-                'avg_salary': round(result[2])
-            }
+            return {"avg_min": round(result[0]), "avg_max": round(result[1]), "avg_salary": round(result[2])}
         except Exception as e:
             print(f"Ошибка при получении данных: {e}")
             raise
@@ -223,7 +210,7 @@ class DBManager:
         """
         try:
             # Получаем среднюю зарплату
-            avg_salary = self.get_avg_salary()['avg_salary']
+            avg_salary = self.get_avg_salary()["avg_salary"]
 
             # Формируем SQL-запрос
             query = f"""
@@ -242,26 +229,28 @@ class DBManager:
             """
 
             # Выполняем запрос
-            self.cursor.execute(query)
-            results = self.cursor.fetchall()
+            self.cursor.execute(query)  # type: ignore[attr-defined]
+            results = self.cursor.fetchall()  # type: ignore[attr-defined]
 
             # Формируем список вакансий
             vacancies = []
             for row in results:
-                vacancies.append({
-                    'vacancy_name': row[0],
-                    'requirement_vacancy': row[1],
-                    'salary_min': row[2],
-                    'salary_max': row[3],
-                    'avg_salary': row[4]
-                })
+                vacancies.append(
+                    {
+                        "vacancy_name": row[0],
+                        "requirement_vacancy": row[1],
+                        "salary_min": row[2],
+                        "salary_max": row[3],
+                        "avg_salary": row[4],
+                    }
+                )
 
             return vacancies
         except Exception as e:
             print(f"Ошибка при получении данных: {e}")
             raise
 
-    def get_vacancies_with_keyword(self, keyword) -> List[Dict[str, Optional[int]]]:
+    def get_vacancies_with_keyword(self, keyword: str) -> List[Dict[str, Optional[int]]]:
         """
         Метод получает список всех вакансий, в названии которых содержатся переданные в метод слова.
 
@@ -297,19 +286,21 @@ class DBManager:
             search_term = f"%{keyword.lower()}%"
 
             # Выполняем запрос с параметром
-            self.cursor.execute(query, (search_term,))
-            results = self.cursor.fetchall()
+            self.cursor.execute(query, (search_term,))  # type: ignore[attr-defined]
+            results = self.cursor.fetchall()  # type: ignore[attr-defined]
 
             # Формируем список вакансий
             vacancies = []
             for row in results:
-                vacancies.append({
-                    'vacancy_id': row[0],
-                    'vacancy_name': row[1],
-                    'requirement_vacancy': row[2],
-                    'salary_min': row[3],
-                    'salary_max': row[4]
-                })
+                vacancies.append(
+                    {
+                        "vacancy_id": row[0],
+                        "vacancy_name": row[1],
+                        "requirement_vacancy": row[2],
+                        "salary_min": row[3],
+                        "salary_max": row[4],
+                    }
+                )
 
             return vacancies
         except Exception as e:
